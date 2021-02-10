@@ -22,18 +22,18 @@ def parse_url(url: str) -> list:
         for u in url.split('/')
         if u
     ]
-    url_tree = []
+    url_list = []
     for idx, u in enumerate(url):
         if idx != len(url) - 1:
-            url_tree.append({
+            url_list.append({
                 'parent': u,
-                'url': url[idx + 1]
+                'cur_url': url[idx + 1]
             })
         else:
-            url_tree.append({
+            url_list.append({
                 'parent': '/',
-                'url': url[0]
+                'cur_url': url[0]
             })
-    result = [url_tree[-1]] + url_tree[0:len(url_tree)-1]
+    result = [url_list[-1]] + url_list[0:len(url_list)-1]
     return result
 

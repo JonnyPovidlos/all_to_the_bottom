@@ -1,67 +1,32 @@
 import os
 
-from db import SqliteDB, create_tables_db, queries
+from db import(
+    SqliteDB,
+    IpAddress,
+    UrlOfVisit,
+    IpToUrl,
+    create_tables_db,
+)
 from helpers import parse_log_file, parse_url
 
 if __name__ == '__main__':
-    db = SqliteDB()
+
+    database = SqliteDB()
     if not os.path.exists(os.path.join(os.getcwd(), 'db.db')):
-        create_tables_db(db)
-    rows = parse_log_file('logs.txt')
+        create_tables_db(database)
+    rows = parse_log_file('tmp.txt')
 
     for row in rows:
-        with db.connection as connection:
-            query = queries.BaseQuery(connection)
+        connection = database.connection
+        IpAddress(connection).add_ip(row['ip'])
+        ip_id = IpAddress(connection).get_ip_id_by_ip_address(row['ip'])
 
-            query.insert_row(
-                table_name='ip_address',
-                ip=row['ip']
-            )
+        parsed_url = parse_url(row['url'])
+        for url in parsed_url:
+            parent_url_id = UrlOfVisit(connection).get_url_id_by_url(url['parent'])
+            UrlOfVisit(connection).add_url(url['cur_url'], parent_url_id)
 
-            ip_id = query.select_row(
-                table_name='ip_address',
-                fields=['id'],
-                where={
-                    'ip': row['ip']
-                }
-            )['id']
+        url_id = UrlOfVisit(connection).get_url_id_by_url(parsed_url[-1]['cur_url'])
+        IpToUrl(connection).add_ip_to_url(ip_id, url_id, row['date'], row['time'])
 
-            query.insert_row(
-                table_name='date_of_visit',
-                date_visit=row['date'],
-                id_ip=ip_id
-            )
-
-            query.insert_row(
-                table_name='time_of_visit',
-                time_visit=row['time'],
-                id_ip=ip_id
-            )
-            url = parse_url(row['url'])
-
-            for u in url:
-                parent_id = query.select_row(
-                    table_name='url_of_visit',
-                    fields=['id'],
-                    where={
-                        'url': u['parent']
-                    }
-                )['id']
-                query.insert_row(
-                    table_name='url_of_visit',
-                    url=u['url'],
-                    parent_id=parent_id
-                )
-            url_id = query.select_row(
-                table_name='url_of_visit',
-                fields=['id'],
-                where={
-                    'url': url[len(url) - 1]['url']
-                }
-            )['id']
-
-            query.insert_row(
-                table_name='ip_to_url',
-                ip_id=ip_id,
-                url_id=url_id
-            )
+    database.close_connection()

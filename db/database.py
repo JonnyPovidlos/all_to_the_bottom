@@ -4,6 +4,22 @@ import sqlite3
 class SqliteDB:
 
     _connection: sqlite3.Connection
+    __instance__ = None
+
+    def __init__(self):
+        if not SqliteDB.__instance__:
+            SqliteDB.__instance__ = self
+        else:
+            raise Exception(f'Экземпляр класса {self.__class__.__name__} уже был создан')
+
+    def close_connection(self):
+        self._connection.close()
+
+    @staticmethod
+    def get_instance():
+        if not SqliteDB.__instance__:
+            return SqliteDB()
+        return SqliteDB.__instance__
 
     @property
     def connection(self) -> sqlite3.Connection:

@@ -10,20 +10,6 @@ def create_tables_db(database: SqliteDB):
             ip TEXT NOT NULL UNIQUE
             );
             
-            CREATE TABLE IF NOT EXISTS time_of_visit (
-            time_visit TEXT NOT NULL,
-            id_ip      INTEGER NOT NULL,
-            PRIMARY KEY (time_visit, id_ip),
-            FOREIGN KEY(id_ip) REFERENCES ip_address(ip)
-            );
-            
-            CREATE TABLE IF NOT EXISTS date_of_visit (
-            date_visit TEXT NOT NULL,
-            id_ip      INTEGER NOT NULL,
-            PRIMARY KEY (id_ip, date_visit),
-            FOREIGN KEY(id_ip) REFERENCES ip_address(ip)
-            );
-            
             CREATE TABLE IF NOT EXISTS url_of_visit (
             id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             url       TEXT NOT NULL UNIQUE,
@@ -35,8 +21,27 @@ def create_tables_db(database: SqliteDB):
             VALUES ('/');
             
             CREATE TABLE IF NOT EXISTS ip_to_url (
-            ip_id  INTEGER NOT NULL,
-            url_id INTEGER NOT NULL,
-            UNIQUE(ip_id, url_id)
-            )
+            id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            ip_id      INTEGER NOT NULL,
+            url_id     INTEGER NOT NULL,
+            date_visit TEXT NOT NULL,
+            time_visit TEXT NOT NULL,
+            FOREIGN KEY(ip_id)  REFERENCES ip_address(id)   ON DELETE SET NULL,
+            FOREIGN KEY(url_id) REFERENCES url_of_visit(id) ON DELETE SET NULL
+            );
         """)
+
+# CREATE TABLE IF NOT EXISTS time_of_visit (
+# time_visit TEXT NOT NULL,
+# id_ip      INTEGER NOT NULL,
+# PRIMARY KEY (time_visit, id_ip),
+# FOREIGN KEY(id_ip) REFERENCES ip_address(ip)
+# );
+
+# CREATE TABLE IF NOT EXISTS datetime_of_visit (
+# date_visit TEXT NOT NULL,
+# time_visit TEXT NOT NULL,
+# id_ip      INTEGER NOT NULL,
+# PRIMARY KEY (id_ip),
+# FOREIGN KEY(id_ip) REFERENCES ip_address(ip)
+# );
